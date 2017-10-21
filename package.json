@@ -2,7 +2,7 @@
   "name": "myo",
   "version": "3.1.0",
   "description": "Javascript bindings for Myo, refactored to provide a clean interface",
-  "main": "myo.js",
+  "main": "dist/index.js",
   "dependencies": {},
   "devDependencies": {
     "typescript": "^2.5.3"
