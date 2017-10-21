@@ -1,5 +1,8 @@
 # Changelog
 
+### 3.1.0-WIP - Saturday, 21/10/2017
+- Refactored the whole lib to be easier to work with
+
 ### 3.0.0 - Wednesday, 30/11/2016
 - There were issues with Browserify-ing the library, specifically in regards to the `ws` lib
 - Removing the explicit dependacy on the `ws` lib, since it's not needed if the library is being used client-side

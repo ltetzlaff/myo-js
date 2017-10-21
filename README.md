@@ -6,12 +6,19 @@ Myo javascript bindings.
 Myo.js allows you to interact with Thalmic Labs's [Myo Gesture Control Armband](http://myo.com) using websockets. Listen for IMU, EMG, and gesture events, as well as controlling vibration and locking.
 
 ## installation
+
+Currently only intended for browser usage, will re-add node compatibility.
+```bash
+npm install ltetzlaff/myo.js
+```
+
+<!---
 On the browser, just include the `myo.js` file in your project. `Myo` will be global.
 
 On node.js
 
 	npm install myo ws
-
+--->
 
 ## getting started
 You'll need a [Myo](http://myo.com) and [Myo Connect](https://developer.thalmic.com/downloads)
@@ -54,7 +61,7 @@ A myo is **synced** when the user puts it on and does the sync gesture. At this 
 
 
 ## branding and assets
-You can use assets provided in our [branding](https://developer.thalmic.com/branding/) and [UX](https://developer.thalmic.com/ux/) guidelines.
+You can use assets provided in Thalmic's [branding](https://developer.thalmic.com/branding/) and [UX](https://developer.thalmic.com/ux/) guidelines.
 
 ## documentation
 You can read the full documention in [docs.md](docs.md)
