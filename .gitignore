@@ -1,4 +1,7 @@
-/node_modules/*
-/node_modules/*/
-/.idea/*/
-/.idea/
+# Packages
+node_modules/
+
+# Compiled
+dist/*.js.map
+dist/*.js
+dist/*.d.ts
