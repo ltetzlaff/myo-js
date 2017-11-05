@@ -97,7 +97,7 @@ export class MyoManager {
       const method = myo[data.type] as any
       let isStatusEvent = true
       if (method) {
-        isStatusEvent = method(data)
+        isStatusEvent = method.call(myo, data)
       }
       if (!method || isStatusEvent) {
         this.trigger(data.type, data, data.timestamp)
