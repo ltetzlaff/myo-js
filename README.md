@@ -1,6 +1,6 @@
 # myo-js
 
-[![Build Status](https://travis-ci.com/ltetzlaff/myo-js.svg?branch=master)](https://travis-ci.com/ltetzlaff/myo-js)
+[![Build Status](https://travis-ci.org/ltetzlaff/myo-js.svg?branch=master)](https://travis-ci.org/ltetzlaff/myo-js)
 
 [![NPM](https://nodei.co/npm/myo.png)](https://nodei.co/npm/myo/)
 
