@@ -1,4 +1,4 @@
-import { Myo } from "./myo"
+import { Myo } from "./Myo"
 type EventHandler = { id: string, name: string, fn: Function }
 
 export class MyoManager {
@@ -81,7 +81,7 @@ export class MyoManager {
 
   handleMessage(msg: MessageEvent) {
     const data = JSON.parse(msg.data)[1]
-    
+
     if (!data.type || typeof(data.myo) === "undefined") return
     if (data.type === "paired") {
       const exists = this.myos.some(myo => myo.macAddress === data.mac_address)
@@ -95,7 +95,7 @@ export class MyoManager {
     const myo = this.myos.find(myo => myo.connectIndex === data.myo)
     if (myo !== undefined) {
       const method = myo[data.type]
-      let isStatusEvent = true      
+      let isStatusEvent = true
       if (method) {
         isStatusEvent = method(data)
       }

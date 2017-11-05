@@ -1,4 +1,4 @@
-import { MyoManager } from "./myoManager"
+import { MyoManager } from "./MyoManager"
 import { Quaternion, IMUData, Vector3, getStrengthFromRssi } from "./util";
 
 export class Myo {
@@ -12,13 +12,13 @@ export class Myo {
   macAddress: string
   name: string
   connectIndex: string
-  
+
   isLocked = true
   isConnected = false
   isSynced = false
-  
+
   connectVersion: string
-  warmupState : string | undefined  
+  warmupState : string | undefined
   batteryLevel = 0
   direction : any
   arm : any
@@ -46,7 +46,7 @@ export class Myo {
   }
 
   trigger(eventName: string, ...args: any[]) {
-    this.myoManager.trigger(eventName, args)    
+    this.myoManager.trigger(eventName, args)
   }
 
   zeroOrientation() {
@@ -163,7 +163,7 @@ export class Myo {
     this.isLocked = false
     return true
   }
-  
+
   warmup_completed(data: any) {
     this.warmupState = "warm"
     return true
@@ -171,12 +171,12 @@ export class Myo {
 
   rssi(data: any) {
     data.bluetooth_strength = getStrengthFromRssi(data.rssi)
-    const { timestamp } = data    
+    const { timestamp } = data
     this.trigger("bluetooth_strength", data.bluetooth_strength, timestamp)
     this.trigger("rssi", data.rssi, timestamp)
     this.trigger("status", data, timestamp)
   }
-  
+
   battery_level(data: any) {
     this.batteryLevel = data.battery_level
     this.trigger("battery_level", data.battery_level, data.timestamp)

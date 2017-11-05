@@ -1,3 +1,3 @@
-import { MyoManager } from "./myoManager";
+import { MyoManager } from "./MyoManager"
 
 export const myoManager = new MyoManager()
