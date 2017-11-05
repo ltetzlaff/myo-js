@@ -2,21 +2,21 @@
   "name": "myo",
   "version": "3.1.0",
   "description": "Javascript bindings for Myo, refactored to provide a clean interface",
-  "main": "dist/index.js",
-  "typings": "dist/index.d.ts",
+  "main": "dist/index",
+  "typings": "dist/index",
   "dependencies": {},
   "devDependencies": {
-    "typescript": "^2.5.3"
+    "typescript": "^2.6.1"
   },
   "scripts": {
+    "build": "tsc",
     "prepare": "npm run build",
     "postinstall": "npm run build",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc"
+    "test": "npm run build"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ltetzlaff/myo.js.git"
+    "url": "https://github.com/ltetzlaff/myo-js.git"
   },
   "keywords": [
     "myo",
@@ -29,7 +29,7 @@
   ],
   "license": "BSD-3",
   "bugs": {
-    "url": "https://github.com/ltetzlaff/myo.js/issues"
+    "url": "https://github.com/ltetzlaff/myo-js/issues"
   },
-  "homepage": "https://github.com/ltetzlaff/myo.js"
+  "homepage": "https://github.com/ltetzlaff/myo-js"
 }

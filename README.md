@@ -1,4 +1,7 @@
-# myo.js
+# myo-js
+
+[![Build Status](https://travis-ci.com/ltetzlaff/myo-js.svg?branch=master)](https://travis-ci.com/ltetzlaff/myo-js)
+
 [![NPM](https://nodei.co/npm/myo.png)](https://nodei.co/npm/myo/)
 
 Myo javascript bindings.
@@ -9,7 +12,7 @@ Myo.js allows you to interact with Thalmic Labs's [Myo Gesture Control Armband](
 
 Currently only intended for browser usage, will re-add node compatibility.
 ```bash
-npm install ltetzlaff/myo.js
+npm install ltetzlaff/myo-js
 ```
 
 <!---
