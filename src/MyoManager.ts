@@ -94,7 +94,7 @@ export class MyoManager {
 
     const myo = this.myos.find(myo => myo.connectIndex === data.myo)
     if (myo !== undefined) {
-      const method = myo[data.type]
+      const method = myo[data.type] as any
       let isStatusEvent = true
       if (method) {
         isStatusEvent = method(data)
