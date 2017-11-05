@@ -1,6 +1,6 @@
 {
   "name": "myo",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "Javascript bindings for Myo, refactored to provide a clean interface",
   "main": "dist/index",
   "typings": "dist/index",

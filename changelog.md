@@ -1,6 +1,10 @@
 # Changelog
 
-### 3.1.0-WIP - Saturday, 21/10/2017
+### 3.2.0-WIP - 05/11/2017
+- Will be compiled from source upon fetch
+- Move demos out of this repo
+
+### 3.1.0-WIP - 21/10/2017
 - Refactored the whole lib to be easier to work with
 
 ### 3.0.0 - Wednesday, 30/11/2016
