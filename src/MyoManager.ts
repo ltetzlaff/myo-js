@@ -1,4 +1,5 @@
 import { Myo } from "./Myo"
+import { MyoDto, Command } from "./types";
 type EventHandler = { id: string, name: string, fn: Function }
 
 export class MyoManager {
@@ -29,9 +30,11 @@ export class MyoManager {
     return this
   }
 
-  trigger(eventName: string, ...args: any[]) {
+  trigger(eventName: string, myo: Myo | null, ...args: any[]) {
     const handler = this.eventHandlers.get(eventName)
-    if (handler !== undefined) handler.fn(...args)
+    if (handler !== undefined) {
+      handler.fn.call(myo, ...args)
+    }
 
     this.eventHandlersAll.forEach(h => h.fn(...args))
     return this
@@ -64,9 +67,9 @@ export class MyoManager {
 
     const { socketUrl, apiVersion, appID } = this.defaults
     const s = new WebSocket(socketUrl + apiVersion + "?appid=" + appID)
-    s.onmessage = this.handleMessage
-    s.onopen = ev => this.trigger("ready", ev)
-    s.onclose = ev => this.trigger("socket_closed", ev)
+    s.onmessage = msg => this.handleMessage(msg)
+    s.onopen = ev => this.trigger("ready", null, ev)
+    s.onclose = ev => this.trigger("socket_closed", null, ev)
     s.onerror = this.onError
     this.socket = s
   }
@@ -75,12 +78,12 @@ export class MyoManager {
     this.socket.close()
   }
 
-  sendCommand(data: any) {
+  sendCommand(data: Command) {
     this.socket.send(JSON.stringify([ "command", data ]))
   }
 
   handleMessage(msg: MessageEvent) {
-    const data = JSON.parse(msg.data)[1]
+    const data = JSON.parse(msg.data)[1] as MyoDto
 
     if (!data.type || typeof(data.myo) === "undefined") return
     if (data.type === "paired") {
@@ -88,20 +91,68 @@ export class MyoManager {
 
       if (!exists) {
         const { mac_address, name, myo } = data
-        this.myos.push(new Myo(mac_address, name, myo))
+        this.myos.push(new Myo(mac_address, name, myo, this))
       }
     }
 
     const myo = this.myos.find(myo => myo.connectIndex === data.myo)
     if (myo !== undefined) {
-      const method = myo[data.type] as any
-      let isStatusEvent = true
-      if (method) {
-        isStatusEvent = method.call(myo, data)
+      let isStatusEvent = false
+      //console.log(data)
+      switch (data.type) {
+        case "pose":
+          myo.pose(data)
+          break
+        case "orientation":
+          myo.orientation(data)
+          break
+        case "emg":
+          myo.emg(data)
+          break
+        case "arm_synced":
+          myo.arm_synced(data)
+          isStatusEvent = true
+          break
+        case "arm_unsynced":
+          myo.arm_unsynced()
+          isStatusEvent = true
+          break
+        case "connected":
+          myo.connected(data)
+          isStatusEvent = true
+          break
+        case "disconnected":
+          myo.disconnected()
+          isStatusEvent = true
+          break          
+        case "locked":
+          myo.locked()
+          isStatusEvent = true
+          break
+        case "unlocked":
+          myo.unlocked()
+          break
+        case "warmup_completed":
+          myo.warmup_completed()
+          isStatusEvent = true
+          break
+        case "rssi":
+          myo.rssi(data)
+          break
+        case "battery_level":
+          myo.battery_level(data)
+          break
+        case "paired":
+          isStatusEvent = true
+          break
+        default:
+          console.log(data.type)
+          break
       }
-      if (!method || isStatusEvent) {
-        this.trigger(data.type, data, data.timestamp)
-        this.trigger("status", data, data.timestamp)
+
+      if (isStatusEvent) {
+        myo.trigger(data.type, data, data.timestamp)
+        myo.trigger("status", data, data.timestamp)
       }
     }
   }

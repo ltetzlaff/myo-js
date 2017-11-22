@@ -39,3 +39,17 @@ export interface OrientationDto {
 export interface PoseDto {
   pose: "rest" | IDK
 }
+
+export interface MyoDto extends OrientationDto, PoseDto, EmgDto, ArmDto, VersionDto, RssiDto, BatteryDto {
+  type: string
+
+  mac_address: string
+  name: string
+  myo: string // connectIndex
+}
+
+export interface Command {
+  command: string
+  myo?: string
+  type?: string
+}

@@ -3,16 +3,12 @@ import { VersionDto, IDK, RssiDto, BatteryDto, ArmDto, EmgDto, OrientationDto, P
 import { Quaternion, IMUData, Vector3, getStrengthFromRssi } from "./util"
 
 export class Myo {
-  constructor(macAddress: string, name: string, connectIndex: string) {
-    this.macAddress = macAddress
-    this.name = name
-    this.connectIndex = connectIndex
-  }
-
-  myoManager: MyoManager
-  macAddress: string
-  name: string
-  connectIndex: string
+  constructor(
+    public macAddress: string,
+    public name: string,
+    public connectIndex: string,
+    public myoManager: MyoManager  
+  ) {}
 
   isLocked = true
   isConnected = false
@@ -47,7 +43,7 @@ export class Myo {
   }
 
   trigger(eventName: string, ...args: any[]) {
-    this.myoManager.trigger(eventName, args)
+    this.myoManager.trigger(eventName, this, ...args)
   }
 
   zeroOrientation() {
@@ -133,7 +129,6 @@ export class Myo {
     this.direction = data.x_direction
     this.warmupState = data.warmup_state
     this.isSynced = true
-    return true
   }
 
   arm_unsynced() {
@@ -141,33 +136,27 @@ export class Myo {
     this.direction = undefined
     this.warmupState = undefined
     this.isSynced = false
-    return true
   }
 
   connected({ version }: VersionDto) {
     this.connectVersion = version.join(".")
     this.isConnected = true
-    return true
   }
 
   disconnected() {
     this.isConnected = false
-    return true
   }
 
   locked() {
     this.isLocked = true
-    return true
   }
 
   unlocked() {
     this.isLocked = false
-    return true
   }
 
   warmup_completed() {
     this.warmupState = "warm"
-    return true
   }
 
   rssi(data: RssiDto) {
