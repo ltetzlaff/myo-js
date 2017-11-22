@@ -1,5 +1,6 @@
 import { MyoManager } from "./MyoManager"
-import { Quaternion, IMUData, Vector3, getStrengthFromRssi } from "./util";
+import { VersionDto, IDK, RssiDto, BatteryDto, ArmDto, EmgDto, OrientationDto, PoseDto } from "./types"
+import { Quaternion, IMUData, Vector3, getStrengthFromRssi } from "./util"
 
 export class Myo {
   constructor(macAddress: string, name: string, connectIndex: string) {
@@ -20,13 +21,13 @@ export class Myo {
   connectVersion: string
   warmupState : string | undefined
   batteryLevel = 0
-  direction : any
-  arm : any
+  direction : IDK | undefined
+  arm : IDK | undefined
   orientationOffset = Quaternion.Identity()
 
   lastQuant = Quaternion.Identity()
   lastIMU : IMUData
-  lastPose : any = undefined
+  lastPose : IDK = undefined
 
   lock() {
     this.myoManager.sendCommand( {
@@ -90,7 +91,7 @@ export class Myo {
     return this
   }
 
-  pose(data: any) {
+  pose(data: PoseDto) {
     if (this.lastPose){
       this.trigger(this.lastPose + "_off")
       this.trigger("pose_off", this.lastPose)
@@ -107,7 +108,7 @@ export class Myo {
     }
   }
 
-  orientation(data: any) {
+  orientation(data: OrientationDto) {
     this.lastQuant = data.orientation
     const orientation = this.orientationOffset.rotate(data.orientation)
     const accelerometer = Vector3.fromArray(data.accelerometer)
@@ -122,12 +123,12 @@ export class Myo {
     this.lastIMU = imuData
   }
 
-  emg (data: any) {
+  emg (data: EmgDto) {
     this.trigger(data.type, data.emg, data.timestamp)
   }
 
   //Status Events
-  arm_synced(data: any) {
+  arm_synced(data: ArmDto) {
     this.arm = data.arm
     this.direction = data.x_direction
     this.warmupState = data.warmup_state
@@ -135,7 +136,7 @@ export class Myo {
     return true
   }
 
-  arm_unsynced(data: any) {
+  arm_unsynced() {
     this.arm = undefined
     this.direction = undefined
     this.warmupState = undefined
@@ -143,33 +144,33 @@ export class Myo {
     return true
   }
 
-  connected(data: any) {
-    this.connectVersion = data.version.join(".")
+  connected({ version }: VersionDto) {
+    this.connectVersion = version.join(".")
     this.isConnected = true
     return true
   }
 
-  disconnected(data: any) {
+  disconnected() {
     this.isConnected = false
     return true
   }
 
-  locked(data: any) {
+  locked() {
     this.isLocked = true
     return true
   }
 
-  unlocked(data: any) {
+  unlocked() {
     this.isLocked = false
     return true
   }
 
-  warmup_completed(data: any) {
+  warmup_completed() {
     this.warmupState = "warm"
     return true
   }
 
-  rssi(data: any) {
+  rssi(data: RssiDto) {
     data.bluetooth_strength = getStrengthFromRssi(data.rssi)
     const { timestamp } = data
     this.trigger("bluetooth_strength", data.bluetooth_strength, timestamp)
@@ -177,7 +178,7 @@ export class Myo {
     this.trigger("status", data, timestamp)
   }
 
-  battery_level(data: any) {
+  battery_level(data: BatteryDto) {
     this.batteryLevel = data.battery_level
     this.trigger("battery_level", data.battery_level, data.timestamp)
     this.trigger("status", data, data.timestamp)
