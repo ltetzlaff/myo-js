@@ -1,6 +1,13 @@
 import { Myo } from "./Myo"
 import { MyoDto, Command } from "./types";
-type EventHandler = { id: string, name: string, fn: Function }
+
+export type Callback = (myo: Myo | undefined, ...args: any[]) => void
+
+interface IEventHandler {
+  id: string
+  name: string
+  fn: Callback
+}
 
 export class MyoManager {
   private defaults = {
@@ -9,8 +16,8 @@ export class MyoManager {
     appID      : "com.myojs.default"
   }
 
-  private eventHandlers = new Map<string, EventHandler>()
-  private eventHandlersAll = new Array<EventHandler>()
+  private eventHandlers = new Map<string, IEventHandler>()
+  private eventHandlersAll = new Array<IEventHandler>()
   private eventCounter: number = 0
 
   lockingPolicy = "standard"
@@ -30,17 +37,17 @@ export class MyoManager {
     return this
   }
 
-  trigger(eventName: string, myo: Myo | null, ...args: any[]) {
+  trigger(eventName: string, myo: Myo | undefined, ...args: any[]) {
     const handler = this.eventHandlers.get(eventName)
     if (handler !== undefined) {
-      handler.fn.call(myo, ...args)
+      handler.fn(myo, ...args)
     }
 
-    this.eventHandlersAll.forEach(h => h.fn(...args))
+    this.eventHandlersAll.forEach(h => h.fn(undefined, ...args))
     return this
   }
 
-  on(name: string, fn: Function) {
+  on(name: string, fn: Callback) {
     const id = Date.now() + "" + this.eventCounter++
     const handler = { id, name, fn }
     if (name === "*") {
@@ -68,8 +75,8 @@ export class MyoManager {
     const { socketUrl, apiVersion, appID } = this.defaults
     const s = new WebSocket(socketUrl + apiVersion + "?appid=" + appID)
     s.onmessage = msg => this.handleMessage(msg)
-    s.onopen = ev => this.trigger("ready", null, ev)
-    s.onclose = ev => this.trigger("socket_closed", null, ev)
+    s.onopen = ev => this.trigger("ready", undefined, ev)
+    s.onclose = ev => this.trigger("socket_closed", undefined, ev)
     s.onerror = this.onError
     this.socket = s
   }
@@ -124,7 +131,7 @@ export class MyoManager {
         case "disconnected":
           myo.disconnected()
           isStatusEvent = true
-          break          
+          break
         case "locked":
           myo.locked()
           isStatusEvent = true

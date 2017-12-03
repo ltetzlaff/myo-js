@@ -7,7 +7,7 @@ export class Myo {
     public macAddress: string,
     public name: string,
     public connectIndex: string,
-    public myoManager: MyoManager  
+    public myoManager: MyoManager
   ) {}
 
   isLocked = true
@@ -52,8 +52,7 @@ export class Myo {
     return this
   }
 
-  vibrate(intensity: string) {
-    intensity = intensity || "medium"
+  vibrate(intensity: string= "medium") {
     this.myoManager.sendCommand({
       command: "vibrate",
       myo: this.connectIndex,
