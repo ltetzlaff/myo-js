@@ -4,9 +4,25 @@ import { Myo } from "./Myo"
 // This stands for in which direction the thalmic logo on the device is pointing.
 export type Direction = "toward_elbow" | "toward_wrist" | undefined
 
-export type Arm = "left" | "right"
+export const enum Arm {
+  Left = "left",
+  Right = "right"
+}
 
-export type LockingPolicy = "standard" | "none"
+export const enum VibrationDuration {
+  Short= "short",
+  Medium = "medium",
+  Long = "long"
+}
+
+export const enum WarmupState {
+  Warm = "warm"
+}
+
+export const enum LockingPolicy {
+  Standard = "standard",
+  None = "none"
+}
 
 export const enum MyoDataType {
   Paired = "paired",
@@ -73,7 +89,14 @@ export interface IOrientationDto extends IMyoDto {
   gyroscope: [number, number, number]
 }
 
-export type Pose = "rest" | "fingers_spread" | "wave_in" | "wave_out" | "fist" | "double_tap"
+export const enum Pose {
+  Rest = "rest",
+  FingersSpread = "fingers_spread",
+  WaveIn = "wave_in",
+  WaveOut = "wave_out",
+  Fist = "fist",
+  DoubleTap = "double_tap"
+}
 
 export interface IPoseDto extends IMyoDto {
   type: MyoDataType.Pose
