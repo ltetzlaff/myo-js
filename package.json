@@ -1,7 +1,7 @@
 {
-  "name": "myo",
+  "name": "myo-ts",
   "version": "3.3.0",
-  "description": "Javascript bindings for Myo, refactored to provide a clean interface",
+  "description": "Typescript and Javascript bindings for Myo, refactored to provide a clean interface",
   "main": "dist/index",
   "typings": "dist/index",
   "dependencies": {},
@@ -24,7 +24,10 @@
   "keywords": [
     "myo",
     "thalmic",
-    "myojs"
+    "myojs",
+    "myo-js",
+    "typescript",
+    "emg"
   ],
   "contributors": [
     "thalmiclabs",
