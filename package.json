@@ -6,18 +6,20 @@
   "typings": "dist/index",
   "dependencies": {},
   "devDependencies": {
+    "tslint": "^5.8.0",
+    "tslint-lt": "^1.5.0",
     "typescript": "^2.6.1"
   },
   "scripts": {
-    "build": "tsc",
-    "watch": "tsc --watch",
-    "prepare": "npm run build",
-    "postinstall": "npm run build",
-    "test": "npm run build"
+    "build": "tsc --watch || true",
+    "buildOnce": "tsc",
+    "prepublish": "npm run buildOnce",
+    "lint": "tslint --format stylish --project .",
+    "test": "npm run buildOnce && npm run lint"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ltetzlaff/myo-js.git"
+    "url": "https://github.com/ltetzlaff/myo-ts.git"
   },
   "keywords": [
     "myo",
@@ -30,7 +32,7 @@
   ],
   "license": "BSD-3",
   "bugs": {
-    "url": "https://github.com/ltetzlaff/myo-js/issues"
+    "url": "https://github.com/ltetzlaff/myo-ts/issues"
   },
-  "homepage": "https://github.com/ltetzlaff/myo-js"
+  "homepage": "https://github.com/ltetzlaff/myo-ts"
 }

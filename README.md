@@ -1,6 +1,6 @@
-# myo-js
+# myo-ts
 
-[![Build Status](https://travis-ci.org/ltetzlaff/myo-js.svg?branch=master)](https://travis-ci.org/ltetzlaff/myo-js)
+[![Build Status](https://travis-ci.org/ltetzlaff/myo-ts.svg?branch=master)](https://travis-ci.org/ltetzlaff/myo-ts)
 
 <!--[![NPM](https://nodei.co/npm/myo.png)](https://nodei.co/npm/myo/)-->
 
@@ -13,8 +13,9 @@ Examples can be found here [myo-tests](https://github.com/ltetzlaff/myo-tests).
 ## Installation
 
 Currently only intended for browser usage, will re-add node compatibility.
+
 ```bash
-npm install ltetzlaff/myo-js
+npm i myo-ts
 ```
 
 <!---
@@ -22,9 +23,11 @@ On the browser, just include the `myo.js` file in your project. `Myo` will be gl
 
 On node.js
 
-	npm install myo ws
---->
+```bash
+npm install myo ws
+```
 
+--->
 
 ### Usage
 
@@ -35,9 +38,9 @@ import myo from "myo"
 
 myo.connect("com.stolksdorf.myAwesomeApp")
 
-myo.on("fist", function(){
+myo.on("fist", myo => {
 	console.log("Hello Myo!")
-	this.vibrate()
+	myo.vibrate()
 })
 ```
 
@@ -50,7 +53,6 @@ A myo is **paired** if it's ever been connected to your computer. You can see a 
 A myo is **connected** if it's turned on and connected to your computer over bluetooth. It can send over IMU events at this point, vibrate, and EMG (if `myo.streamEMG(true)` is called) but not poses since it's not synced with the user.
 
 A myo is **synced** when the user puts it on and does the sync gesture. At this point it will start sending over pose and lock/unlock events.
-
 
 ## Branding and Assets
 
