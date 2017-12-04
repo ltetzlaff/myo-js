@@ -1,5 +1,5 @@
 import { Myo } from "./Myo"
-import { IMyoDto, ICommand, LockingPolicy, MMEvent, Pose, MMPoseOffEvent, EMGPodsTuple, MMStatusEvent, MCBCloseEvent, MCBOrientation, MCBAcceleration, MCBGyroscope, MCBIMU, MCBStatus, MCBBatteryLevel, MCBRSSI, MCBBluetoothStrength, MCBEMG, MyoCallback, MCBEmpty, IPoseDto, IOrientationDto, IArmDto, IVersionDto, IRssiDto, IBatteryDto, IEmgDto, isMMStatusEvent, MCBPose, MCBEvent } from "./types"
+import { IMyoDto, ICommand, LockingPolicy, MMEvent, Pose, MMPoseOffEvent, EMGPodsTuple, MMStatusEvent, MCBCloseEvent, MCBOrientation, MCBAcceleration, MCBGyroscope, MCBIMU, MCBStatus, MCBBatteryLevel, MCBRSSI, MCBBluetoothStrength, MCBEMG, MyoCallback, MCBEmpty, IPoseDto, IOrientationDto, IArmDto, IVersionDto, IRssiDto, IBatteryDto, IEmgDto, isMMStatusEvent, MCBPose, MCBEvent, MyoDataType } from "./types"
 import { Quaternion, Vector3, IIMUData } from "./util"
 
 interface IEventHandler {
@@ -121,7 +121,7 @@ export class MyoManager {
   private handleMessage(msg: MessageEvent) {
     const data = JSON.parse(msg.data)[1] as IMyoDto
 
-    if (!data.type || typeof(data.myo) === "undefined") return
+    if (!data.type || data.myo === undefined) return
     if (data.type === "paired") {
       const exists = this.myos.some(myo => myo.macAddress === data.mac_address)
 
@@ -134,49 +134,52 @@ export class MyoManager {
     const myo = this.myos.find(myo => myo.connectIndex === data.myo)
     if (myo !== undefined) {
       switch (data.type) {
-        case "pose":
+        case MyoDataType.Pose:
           myo.pose(data as IPoseDto)
           break
-        case "orientation":
+        case MyoDataType.Orientation:
           myo.orientation(data as IOrientationDto)
           break
-        case "emg":
-          myo.emg(data as IEmgDto)
+        case MyoDataType.EMG:
+          const { emg, timestamp } = data as IEmgDto
+          this.emit(MMEvent.EMG, myo, emg, timestamp)
           break
-        case "unlocked":
-          myo.unlocked()
+        case MyoDataType.Unlocked:
+          myo.isLocked = false
           break
-        case "rssi":
-          myo.rssi(data as IRssiDto)
+        case MyoDataType.RSSI:
+          myo.updateBluetooth(data as IRssiDto)
           break
-        case "battery_level":
-          myo.battery_level(data as IBatteryDto)
+        case MyoDataType.BatteryLevel:
+          myo.updateBatteryLevel(data as IBatteryDto)
           break
-        case "arm_synced":
-          myo.arm_synced(data as IArmDto)
+        case MyoDataType.ArmSynced:
+          myo.syncArm(data as IArmDto)
           this.emit(MMEvent.ArmSynced, myo, data, data.timestamp)
           break
-        case "arm_unsynced":
-          myo.arm_unsynced()
+        case MyoDataType.ArmUnsynced:
+          myo.unsyncArm()
           this.emit(MMEvent.ArmUnsynced, myo, data, data.timestamp)
           break
-        case "connected":
-          myo.connected(data as IVersionDto)
-          this.emit(MMEvent.Connected, myo, data, data.timestamp)
+        case MyoDataType.Connected:
+          const dto = data as IVersionDto
+          myo.connectVersion = dto.version.join(".")
+          myo.isConnected = true
+          this.emit(MMEvent.Connected, myo, dto, dto.timestamp)
           break
-        case "disconnected":
-          myo.disconnected()
+        case MyoDataType.Disconnected:
+          myo.isConnected = false
           this.emit(MMEvent.Disconnected, myo, data, data.timestamp)
           break
-        case "locked":
-          myo.locked()
+        case MyoDataType.Locked:
+          myo.isLocked = true
           this.emit(MMEvent.Locked, myo, data, data.timestamp)
           break
-          case "warmup_completed":
-          myo.warmup_completed()
+          case MyoDataType.WarmupCompleted:
+          myo.warmupState = "warm"
           this.emit(MMEvent.WarmupCompleted, myo, data, data.timestamp)
           break
-        case "paired":
+        case MyoDataType.Paired:
           this.emit(MMEvent.Paired, myo, data, data.timestamp)
           break
         default:

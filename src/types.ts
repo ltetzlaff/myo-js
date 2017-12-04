@@ -8,8 +8,24 @@ export type Arm = "left" | "right"
 
 export type LockingPolicy = "standard" | "none"
 
+export const enum MyoDataType {
+  Paired = "paired",
+  Pose = "pose",
+  Orientation = "orientation",
+  EMG = "emg",
+  Unlocked = "unlocked",
+  Locked = "locked",
+  RSSI = "rssi",
+  BatteryLevel = "battery_level",
+  ArmSynced = "arm_synced",
+  ArmUnsynced = "arm_unsynced",
+  Connected = "connected",
+  Disconnected = "disconnected",
+  WarmupCompleted = "warmup_completed"
+}
+
 export interface IMyoDto {
-  type: string
+  type: MyoDataType
 
   timestamp: number
   mac_address: string
@@ -18,25 +34,24 @@ export interface IMyoDto {
 }
 
 export interface IBatteryDto extends IMyoDto {
-  type: "battery_level"
+  type: MyoDataType.BatteryLevel
   battery_level: number
   timestamp: number
 }
 
 export interface IRssiDto extends IMyoDto {
-  type: "rssi"
+  type: MyoDataType.RSSI
   rssi: number
-  bluetooth_strength: number
   timestamp: number
 }
 
 export interface IVersionDto extends IMyoDto {
-  type: "connected"
+  type: MyoDataType.Connected
   version: string[] | number[]
 }
 
 export interface IArmDto extends IMyoDto {
-  type: "arm_synced"
+  type: MyoDataType.ArmSynced
   arm: Arm
   x_direction: Direction
   warmup_state: string
@@ -45,13 +60,13 @@ export interface IArmDto extends IMyoDto {
 export type EMGPodsTuple = [ number, number, number, number, number, number, number, number ]
 
 export interface IEmgDto extends IMyoDto {
-  type: "emg"
+  type: MyoDataType.EMG
   timestamp: number
   emg: EMGPodsTuple
 }
 
 export interface IOrientationDto extends IMyoDto {
-  type: "orientation"
+  type: MyoDataType.Orientation
   timestamp: number
   orientation: Quaternion
   accelerometer: [number, number, number]
@@ -61,7 +76,7 @@ export interface IOrientationDto extends IMyoDto {
 export type Pose = "rest" | "fingers_spread" | "wave_in" | "wave_out" | "fist" | "double_tap"
 
 export interface IPoseDto extends IMyoDto {
-  type: "pose"
+  type: MyoDataType.Pose
   pose: Pose
 }
 

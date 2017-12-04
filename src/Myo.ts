@@ -115,55 +115,30 @@ export class Myo {
     this.lastIMU = imuData
   }
 
-  public emg(data: IEmgDto) {
-    this.myoManager.emit(MMEvent.EMG, this, data.emg, data.timestamp)
-  }
-
   //Status Events
-  public arm_synced(data: IArmDto) {
+  public syncArm(data: IArmDto) {
     this.arm = data.arm
     this.direction = data.x_direction
     this.warmupState = data.warmup_state
     this.isSynced = true
   }
 
-  public arm_unsynced() {
+  public unsyncArm() {
     this.arm = undefined
     this.direction = undefined
     this.warmupState = undefined
     this.isSynced = false
   }
 
-  public connected({ version }: IVersionDto) {
-    this.connectVersion = version.join(".")
-    this.isConnected = true
-  }
-
-  public disconnected() {
-    this.isConnected = false
-  }
-
-  public locked() {
-    this.isLocked = true
-  }
-
-  public unlocked() {
-    this.isLocked = false
-  }
-
-  public warmup_completed() {
-    this.warmupState = "warm"
-  }
-
-  public rssi(data: IRssiDto) {
-    data.bluetooth_strength = getStrengthFromRssi(data.rssi)
+  public updateBluetooth(data: IRssiDto) {
     const { timestamp } = data
-    this.myoManager.emit(MMEvent.BluetoothStrength, this, data.bluetooth_strength, timestamp)
+    const strength = getStrengthFromRssi(data.rssi)
+    this.myoManager.emit(MMEvent.BluetoothStrength, this, strength, timestamp)
     this.myoManager.emit(MMEvent.RSSI, this, data.rssi, timestamp)
     this.myoManager.emit(MMEvent.Status, this, data, timestamp)
   }
 
-  public battery_level(data: IBatteryDto) {
+  public updateBatteryLevel(data: IBatteryDto) {
     this.batteryLevel = data.battery_level
     this.myoManager.emit(MMEvent.BatteryLevel, this, data.battery_level, data.timestamp)
     this.myoManager.emit(MMEvent.Status, this, data, data.timestamp)
