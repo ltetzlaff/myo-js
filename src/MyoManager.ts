@@ -1,5 +1,5 @@
 import { Myo } from "./Myo"
-import { IMyoDto, ICommand, LockingPolicy, MMEvent, Pose, MMPoseOffEvent, EMGPodsTuple, MMStatusEvent, MCBCloseEvent, MCBOrientation, MCBAcceleration, MCBGyroscope, MCBIMU, MCBStatus, MCBBatteryLevel, MCBRSSI, MCBBluetoothStrength, MCBEMG, MyoCallback, MCBEmpty, IPoseDto, IOrientationDto, IArmDto, IVersionDto, IRssiDto, IBatteryDto, IEmgDto, isMMStatusEvent, MCBPose, MCBEvent, MyoDataType } from "./types"
+import { IMyoDto, ICommand, LockingPolicy, MMEvent, Pose, MMPoseOffEvent, EMGPodsTuple, MMStatusEvent, MCBCloseEvent, MCBOrientation, MCBAcceleration, MCBGyroscope, MCBIMU, MCBStatus, MCBBatteryLevel, MCBRSSI, MCBBluetoothStrength, MCBEMG, MyoCallback, MCBEmpty, IPoseDto, IOrientationDto, IArmDto, IVersionDto, IRssiDto, IBatteryDto, IEmgDto, isMMStatusEvent, MCBPose, MCBEvent, MyoDataType, WarmupState } from "./types"
 import { Quaternion, Vector3, IIMUData } from "./util"
 
 interface IEventHandler {
@@ -19,7 +19,7 @@ export class MyoManager {
   private eventHandlersAll = new Array<IEventHandler>()
   private eventCounter: number = 0
 
-  public lockingPolicy: LockingPolicy = "standard"
+  public lockingPolicy = LockingPolicy.Standard
   public myos: Myo[] = []
   private socket: WebSocket
 
@@ -33,7 +33,6 @@ export class MyoManager {
       type: policy
     })
     this.lockingPolicy = policy
-    return this
   }
 
   public emit(name: MMEvent.Ready, myo: undefined, ev: Event): void
@@ -61,23 +60,23 @@ export class MyoManager {
     this.eventHandlersAll.forEach(h => h.fn(undefined, ...args))
   }
 
-  public on(name: MMEvent.Ready, fn: MCBEvent): string
-  public on(name: MMEvent.SocketClosed, fn: MCBCloseEvent): string
-  public on(name: Pose | MMPoseOffEvent, fn: MCBEmpty): string
-  public on(name: MMEvent.PoseEnter | MMEvent.PoseLeave, fn: MCBPose): string
+  public on(name: MMEvent.Ready, fn: MCBEvent): void
+  public on(name: MMEvent.SocketClosed, fn: MCBCloseEvent): void
+  public on(name: Pose | MMPoseOffEvent, fn: MCBEmpty): void
+  public on(name: MMEvent.PoseEnter | MMEvent.PoseLeave, fn: MCBPose): void
 
-  public on(name: MMEvent.Orientation, fn: MCBOrientation): string
-  public on(name: MMEvent.Accelerometer, fn: MCBAcceleration): string
-  public on(name: MMEvent.Gyroscope, fn: MCBGyroscope): string
-  public on(name: MMEvent.IMU, fn: MCBIMU): string
+  public on(name: MMEvent.Orientation, fn: MCBOrientation): void
+  public on(name: MMEvent.Accelerometer, fn: MCBAcceleration): void
+  public on(name: MMEvent.Gyroscope, fn: MCBGyroscope): void
+  public on(name: MMEvent.IMU, fn: MCBIMU): void
 
-  public on(name: MMEvent.ZeroOrientation, fn: MCBEmpty): string
-  public on(name: MMEvent.EMG, fn: MCBEMG): string
-  public on(name: MMEvent.BluetoothStrength, fn: MCBBluetoothStrength): string
-  public on(name: MMEvent.RSSI, fn: MCBRSSI): string
-  public on(name: MMEvent.BatteryLevel, fn: MCBBatteryLevel): string
-  public on(name: MMStatusEvent, fn: MCBStatus): string
-  public on(name: string, fn: MyoCallback): string {
+  public on(name: MMEvent.ZeroOrientation, fn: MCBEmpty): void
+  public on(name: MMEvent.EMG, fn: MCBEMG): void
+  public on(name: MMEvent.BluetoothStrength, fn: MCBBluetoothStrength): void
+  public on(name: MMEvent.RSSI, fn: MCBRSSI): void
+  public on(name: MMEvent.BatteryLevel, fn: MCBBatteryLevel): void
+  public on(name: MMStatusEvent, fn: MCBStatus): void
+  public on(name: string, fn: MyoCallback): void {
     const id = `${ Date.now() }${ this.eventCounter++ }`
     const handler = { id, name, fn }
     if (name === "*") {
@@ -85,7 +84,6 @@ export class MyoManager {
     } else {
       this.eventHandlers.set(name, handler)
     }
-    return id
   }
 
   public off(name: string) {
@@ -96,12 +94,16 @@ export class MyoManager {
     }
   }
 
-  public connect(newAppID: string) {
+  public connect(newAppID?: string, newSocketURL?: string) {
     if (newAppID) {
       this.defaults.appID = newAppID
     }
+    if (newSocketURL) {
+      this.defaults.socketUrl = newSocketURL
+    }
 
     const { socketUrl, apiVersion, appID } = this.defaults
+
     const s = new WebSocket(`${ socketUrl }${ apiVersion }?appid=${ appID }`)
     s.onmessage = msg => this.handleMessage(msg)
     s.onopen = ev => this.emit(MMEvent.Ready, undefined, ev)
@@ -122,7 +124,8 @@ export class MyoManager {
     const data = JSON.parse(msg.data)[1] as IMyoDto
 
     if (!data.type || data.myo === undefined) return
-    if (data.type === "paired") {
+
+    if (data.type === MyoDataType.Paired) {
       const exists = this.myos.some(myo => myo.macAddress === data.mac_address)
 
       if (!exists) {
@@ -176,7 +179,7 @@ export class MyoManager {
           this.emit(MMEvent.Locked, myo, data, data.timestamp)
           break
           case MyoDataType.WarmupCompleted:
-          myo.warmupState = "warm"
+          myo.warmupState = WarmupState.Warm
           this.emit(MMEvent.WarmupCompleted, myo, data, data.timestamp)
           break
         case MyoDataType.Paired:

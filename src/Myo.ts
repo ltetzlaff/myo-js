@@ -1,5 +1,5 @@
 import { MyoManager } from "./MyoManager"
-import { IVersionDto, IRssiDto, IBatteryDto, IArmDto, IEmgDto, IOrientationDto, IPoseDto, Direction, Pose, Arm, MMEvent, MMStatusEvent, MMPoseOffEvent, EMGPodsTuple, IMyoDto } from "./types"
+import { IVersionDto, IRssiDto, IBatteryDto, IArmDto, IEmgDto, IOrientationDto, IPoseDto, Direction, Pose, Arm, LockingPolicy, MMEvent, MMStatusEvent, MMPoseOffEvent, EMGPodsTuple, IMyoDto, VibrationDuration } from "./types"
 import { Quaternion, IIMUData, Vector3, getStrengthFromRssi } from "./util"
 
 export class Myo {
@@ -30,7 +30,6 @@ export class Myo {
       command: "lock",
       myo: this.connectIndex
     })
-    return this
   }
 
   public unlock(hold: boolean = false) {
@@ -39,22 +38,19 @@ export class Myo {
       myo: this.connectIndex,
       type: (hold ? "hold" : "timed")
     })
-    return this
   }
 
   public zeroOrientation() {
     this.orientationOffset = this.lastQuant.invert()
     this.myoManager.emit(MMEvent.ZeroOrientation, this)
-    return this
   }
 
-  public vibrate(intensity: string= "medium") {
+  public vibrate(duration= VibrationDuration.Medium) {
     this.myoManager.sendCommand({
       command: "vibrate",
       myo: this.connectIndex,
-      type: intensity
+      type: duration
     })
-    return this
   }
 
   public requestBluetoothStrength() {
@@ -62,7 +58,6 @@ export class Myo {
       command: "request_rssi",
       myo: this.connectIndex
     })
-    return this
   }
 
   public requestBatteryLevel() {
@@ -70,7 +65,6 @@ export class Myo {
       command: "request_battery_level",
       myo: this.connectIndex
     })
-    return this
   }
 
   public streamEMG(enabled: boolean) {
@@ -79,24 +73,24 @@ export class Myo {
       myo: this.connectIndex,
       type: (enabled ? "enabled" : "disabled")
     })
-    return this
   }
 
   public pose(data: IPoseDto) {
+    const { pose } = data
     if (this.lastPose) {
       // @ts-ignore: Runtime string type checking currently unsupported in TS
       this.myoManager.emit(`${ this.lastPose }_off`)
       this.myoManager.emit(MMEvent.PoseLeave, this, this.lastPose)
     }
-    if (data.pose === "rest") {
-      this.myoManager.emit("rest", this)
+    if (pose === Pose.Rest) {
+      this.myoManager.emit(Pose.Rest, this)
       this.lastPose = undefined
-      if (this.myoManager.lockingPolicy === "standard") this.unlock()
+      if (this.myoManager.lockingPolicy === LockingPolicy.Standard) this.unlock()
     } else {
-      this.myoManager.emit(data.pose, this)
-      this.myoManager.emit(MMEvent.PoseEnter, this, data.pose)
-      this.lastPose = data.pose
-      if (this.myoManager.lockingPolicy === "standard") this.unlock(true)
+      this.myoManager.emit(pose, this)
+      this.myoManager.emit(MMEvent.PoseEnter, this, pose)
+      this.lastPose = pose
+      if (this.myoManager.lockingPolicy === LockingPolicy.Standard) this.unlock(true)
     }
   }
 
