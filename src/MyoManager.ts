@@ -1,12 +1,11 @@
 import { Myo } from "./Myo"
-import { IMyoDto, ICommand, LockingPolicy } from "./types"
-
-export type Callback = (myo: Myo | undefined, ...args: {}[]) => void
+import { IMyoDto, ICommand, LockingPolicy, MMEvent, Pose, MMPoseOffEvent, EMGPodsTuple, MMStatusEvent, MCBCloseEvent, MCBOrientation, MCBAcceleration, MCBGyroscope, MCBIMU, MCBStatus, MCBBatteryLevel, MCBRSSI, MCBBluetoothStrength, MCBEMG, MyoCallback, MCBEmpty, IPoseDto, IOrientationDto, IArmDto, IVersionDto, IRssiDto, IBatteryDto, IEmgDto, isMMStatusEvent, MCBPose, MCBEvent } from "./types"
+import { Quaternion, Vector3, IIMUData } from "./util"
 
 interface IEventHandler {
   id: string
   name: string
-  fn: Callback
+  fn: MyoCallback
 }
 
 export class MyoManager {
@@ -37,17 +36,48 @@ export class MyoManager {
     return this
   }
 
-  public trigger(eventName: string, myo: Myo | undefined, ...args: {}[]) {
-    const handler = this.eventHandlers.get(eventName)
+  public emit(name: MMEvent.Ready, myo: undefined, ev: Event): void
+  public emit(name: MMEvent.SocketClosed, myo: undefined, ev: CloseEvent): void
+  public emit(name: Pose | MMPoseOffEvent, myo: Myo | undefined): void
+  public emit(name: MMEvent.PoseEnter | MMEvent.PoseLeave, myo: Myo | undefined, pose: Pose): void
+
+  public emit(name: MMEvent.Orientation, myo: Myo | undefined, orientation: Quaternion, t: number): void
+  public emit(name: MMEvent.Accelerometer, myo: Myo | undefined, acceleration: Vector3, t: number): void
+  public emit(name: MMEvent.Gyroscope, myo: Myo | undefined, gyroscope: Vector3, t: number): void
+  public emit(name: MMEvent.IMU, myo: Myo | undefined, imuData: IIMUData, t: number): void
+
+  public emit(name: MMEvent.ZeroOrientation, myo: Myo | undefined): void
+  public emit(name: MMEvent.EMG, myo: Myo | undefined, emg: EMGPodsTuple, t: number): void
+  public emit(name: MMEvent.BluetoothStrength, myo: Myo | undefined, strength: number, t: number): void
+  public emit(name: MMEvent.RSSI, myo: Myo | undefined, rssi: number, t: number): void
+  public emit(name: MMEvent.BatteryLevel, myo: Myo | undefined, level: number, t: number): void
+  public emit(name: MMStatusEvent, myo: Myo | undefined, data: IMyoDto, t: number): void
+  public emit(name: string, myo: Myo | undefined, ...args: {}[]): void {
+    const handler = this.eventHandlers.get(name)
     if (handler !== undefined) {
       handler.fn(myo, ...args)
     }
 
     this.eventHandlersAll.forEach(h => h.fn(undefined, ...args))
-    return this
   }
 
-  public on(name: string, fn: Callback) {
+  public on(name: MMEvent.Ready, fn: MCBEvent): string
+  public on(name: MMEvent.SocketClosed, fn: MCBCloseEvent): string
+  public on(name: Pose | MMPoseOffEvent, fn: MCBEmpty): string
+  public on(name: MMEvent.PoseEnter | MMEvent.PoseLeave, fn: MCBPose): string
+
+  public on(name: MMEvent.Orientation, fn: MCBOrientation): string
+  public on(name: MMEvent.Accelerometer, fn: MCBAcceleration): string
+  public on(name: MMEvent.Gyroscope, fn: MCBGyroscope): string
+  public on(name: MMEvent.IMU, fn: MCBIMU): string
+
+  public on(name: MMEvent.ZeroOrientation, fn: MCBEmpty): string
+  public on(name: MMEvent.EMG, fn: MCBEMG): string
+  public on(name: MMEvent.BluetoothStrength, fn: MCBBluetoothStrength): string
+  public on(name: MMEvent.RSSI, fn: MCBRSSI): string
+  public on(name: MMEvent.BatteryLevel, fn: MCBBatteryLevel): string
+  public on(name: MMStatusEvent, fn: MCBStatus): string
+  public on(name: string, fn: MyoCallback): string {
     const id = `${ Date.now() }${ this.eventCounter++ }`
     const handler = { id, name, fn }
     if (name === "*") {
@@ -64,7 +94,6 @@ export class MyoManager {
     } else {
       this.eventHandlers.delete(name)
     }
-    return this
   }
 
   public connect(newAppID: string) {
@@ -75,8 +104,8 @@ export class MyoManager {
     const { socketUrl, apiVersion, appID } = this.defaults
     const s = new WebSocket(`${ socketUrl }${ apiVersion }?appid=${ appID }`)
     s.onmessage = msg => this.handleMessage(msg)
-    s.onopen = ev => this.trigger("ready", undefined, ev)
-    s.onclose = ev => this.trigger("socket_closed", undefined, ev)
+    s.onopen = ev => this.emit(MMEvent.Ready, undefined, ev)
+    s.onclose = ev => this.emit(MMEvent.SocketClosed, undefined, ev)
     s.onerror = this.onError
     this.socket = s
   }
@@ -89,7 +118,7 @@ export class MyoManager {
     this.socket.send(JSON.stringify([ "command", data ]))
   }
 
-  public handleMessage(msg: MessageEvent) {
+  private handleMessage(msg: MessageEvent) {
     const data = JSON.parse(msg.data)[1] as IMyoDto
 
     if (!data.type || typeof(data.myo) === "undefined") return
@@ -104,62 +133,59 @@ export class MyoManager {
 
     const myo = this.myos.find(myo => myo.connectIndex === data.myo)
     if (myo !== undefined) {
-      let isStatusEvent = false
-      //console.log(data)
       switch (data.type) {
         case "pose":
-          myo.pose(data)
+          myo.pose(data as IPoseDto)
           break
         case "orientation":
-          myo.orientation(data)
+          myo.orientation(data as IOrientationDto)
           break
         case "emg":
-          myo.emg(data)
-          break
-        case "arm_synced":
-          myo.arm_synced(data)
-          isStatusEvent = true
-          break
-        case "arm_unsynced":
-          myo.arm_unsynced()
-          isStatusEvent = true
-          break
-        case "connected":
-          myo.connected(data)
-          isStatusEvent = true
-          break
-        case "disconnected":
-          myo.disconnected()
-          isStatusEvent = true
-          break
-        case "locked":
-          myo.locked()
-          isStatusEvent = true
+          myo.emg(data as IEmgDto)
           break
         case "unlocked":
           myo.unlocked()
           break
-        case "warmup_completed":
-          myo.warmup_completed()
-          isStatusEvent = true
-          break
         case "rssi":
-          myo.rssi(data)
+          myo.rssi(data as IRssiDto)
           break
         case "battery_level":
-          myo.battery_level(data)
+          myo.battery_level(data as IBatteryDto)
+          break
+        case "arm_synced":
+          myo.arm_synced(data as IArmDto)
+          this.emit(MMEvent.ArmSynced, myo, data, data.timestamp)
+          break
+        case "arm_unsynced":
+          myo.arm_unsynced()
+          this.emit(MMEvent.ArmUnsynced, myo, data, data.timestamp)
+          break
+        case "connected":
+          myo.connected(data as IVersionDto)
+          this.emit(MMEvent.Connected, myo, data, data.timestamp)
+          break
+        case "disconnected":
+          myo.disconnected()
+          this.emit(MMEvent.Disconnected, myo, data, data.timestamp)
+          break
+        case "locked":
+          myo.locked()
+          this.emit(MMEvent.Locked, myo, data, data.timestamp)
+          break
+          case "warmup_completed":
+          myo.warmup_completed()
+          this.emit(MMEvent.WarmupCompleted, myo, data, data.timestamp)
           break
         case "paired":
-          isStatusEvent = true
+          this.emit(MMEvent.Paired, myo, data, data.timestamp)
           break
         default:
           console.log(data.type)
           break
       }
 
-      if (isStatusEvent) {
-        myo.trigger(data.type, data, data.timestamp)
-        myo.trigger("status", data, data.timestamp)
+      if (isMMStatusEvent(data.type)) {
+        this.emit(MMEvent.Status, myo, data, data.timestamp)
       }
     }
   }

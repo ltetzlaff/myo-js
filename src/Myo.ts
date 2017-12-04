@@ -1,5 +1,5 @@
 import { MyoManager } from "./MyoManager"
-import { IVersionDto, IRssiDto, IBatteryDto, IArmDto, IEmgDto, IOrientationDto, IPoseDto, Direction, Pose, Arm } from "./types"
+import { IVersionDto, IRssiDto, IBatteryDto, IArmDto, IEmgDto, IOrientationDto, IPoseDto, Direction, Pose, Arm, MMEvent, MMStatusEvent, MMPoseOffEvent, EMGPodsTuple, IMyoDto } from "./types"
 import { Quaternion, IIMUData, Vector3, getStrengthFromRssi } from "./util"
 
 export class Myo {
@@ -42,13 +42,9 @@ export class Myo {
     return this
   }
 
-  public trigger(eventName: string, ...args: {}[]) {
-    this.myoManager.trigger(eventName, this, ...args)
-  }
-
   public zeroOrientation() {
     this.orientationOffset = this.lastQuant.invert()
-    this.trigger("zero_orientation")
+    this.myoManager.emit(MMEvent.ZeroOrientation, this)
     return this
   }
 
@@ -88,16 +84,17 @@ export class Myo {
 
   public pose(data: IPoseDto) {
     if (this.lastPose) {
-      this.trigger(this.lastPose + "_off")
-      this.trigger("pose_off", this.lastPose)
+      // @ts-ignore: Runtime string type checking currently unsupported in TS
+      this.myoManager.emit(`${ this.lastPose }_off`)
+      this.myoManager.emit(MMEvent.PoseLeave, this, this.lastPose)
     }
     if (data.pose === "rest") {
-      this.trigger("rest")
+      this.myoManager.emit("rest", this)
       this.lastPose = undefined
       if (this.myoManager.lockingPolicy === "standard") this.unlock()
     } else {
-      this.trigger(data.pose)
-      this.trigger("pose", data.pose)
+      this.myoManager.emit(data.pose, this)
+      this.myoManager.emit(MMEvent.PoseEnter, this, data.pose)
       this.lastPose = data.pose
       if (this.myoManager.lockingPolicy === "standard") this.unlock(true)
     }
@@ -111,15 +108,15 @@ export class Myo {
     const imuData = { orientation, accelerometer, gyroscope } as IIMUData
 
     const { timestamp } = data
-    this.trigger("orientation", orientation, timestamp)
-    this.trigger("accelerometer", accelerometer, timestamp)
-    this.trigger("gyroscope", gyroscope, timestamp)
-    this.trigger("imu", imuData, timestamp)
+    this.myoManager.emit(MMEvent.Orientation, this, orientation, timestamp)
+    this.myoManager.emit(MMEvent.Accelerometer, this, accelerometer, timestamp)
+    this.myoManager.emit(MMEvent.Gyroscope, this, gyroscope, timestamp)
+    this.myoManager.emit(MMEvent.IMU, this, imuData, timestamp)
     this.lastIMU = imuData
   }
 
-  public emg (data: IEmgDto) {
-    this.trigger(data.type, data.emg, data.timestamp)
+  public emg(data: IEmgDto) {
+    this.myoManager.emit(MMEvent.EMG, this, data.emg, data.timestamp)
   }
 
   //Status Events
@@ -161,14 +158,14 @@ export class Myo {
   public rssi(data: IRssiDto) {
     data.bluetooth_strength = getStrengthFromRssi(data.rssi)
     const { timestamp } = data
-    this.trigger("bluetooth_strength", data.bluetooth_strength, timestamp)
-    this.trigger("rssi", data.rssi, timestamp)
-    this.trigger("status", data, timestamp)
+    this.myoManager.emit(MMEvent.BluetoothStrength, this, data.bluetooth_strength, timestamp)
+    this.myoManager.emit(MMEvent.RSSI, this, data.rssi, timestamp)
+    this.myoManager.emit(MMEvent.Status, this, data, timestamp)
   }
 
   public battery_level(data: IBatteryDto) {
     this.batteryLevel = data.battery_level
-    this.trigger("battery_level", data.battery_level, data.timestamp)
-    this.trigger("status", data, data.timestamp)
+    this.myoManager.emit(MMEvent.BatteryLevel, this, data.battery_level, data.timestamp)
+    this.myoManager.emit(MMEvent.Status, this, data, data.timestamp)
   }
 }
