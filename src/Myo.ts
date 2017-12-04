@@ -1,6 +1,6 @@
 import { MyoManager } from "./MyoManager"
-import { VersionDto, IDK, RssiDto, BatteryDto, ArmDto, EmgDto, OrientationDto, PoseDto } from "./types"
-import { Quaternion, IMUData, Vector3, getStrengthFromRssi } from "./util"
+import { IVersionDto, IRssiDto, IBatteryDto, IArmDto, IEmgDto, IOrientationDto, IPoseDto, Direction, Pose, Arm } from "./types"
+import { Quaternion, IIMUData, Vector3, getStrengthFromRssi } from "./util"
 
 export class Myo {
   constructor(
@@ -10,22 +10,22 @@ export class Myo {
     public myoManager: MyoManager
   ) {}
 
-  isLocked = true
-  isConnected = false
-  isSynced = false
+  public isLocked = true
+  public isConnected = false
+  public isSynced = false
 
-  connectVersion: string
-  warmupState : string | undefined
-  batteryLevel = 0
-  direction : IDK | undefined
-  arm : IDK | undefined
-  orientationOffset = Quaternion.Identity()
+  public connectVersion: string
+  public warmupState: string | undefined
+  public batteryLevel = 0
+  public direction: Direction | undefined
+  public arm: Arm | undefined
+  public orientationOffset = Quaternion.Identity()
 
-  lastQuant = Quaternion.Identity()
-  lastIMU : IMUData
-  lastPose : IDK = undefined
+  public lastQuant = Quaternion.Identity()
+  public lastIMU: IIMUData
+  public lastPose: Pose | undefined = undefined
 
-  lock() {
+  public lock() {
     this.myoManager.sendCommand( {
       command: "lock",
       myo: this.connectIndex
@@ -33,7 +33,7 @@ export class Myo {
     return this
   }
 
-  unlock(hold: boolean = false) {
+  public unlock(hold: boolean = false) {
     this.myoManager.sendCommand( {
       command: "unlock",
       myo: this.connectIndex,
@@ -42,17 +42,17 @@ export class Myo {
     return this
   }
 
-  trigger(eventName: string, ...args: any[]) {
+  public trigger(eventName: string, ...args: {}[]) {
     this.myoManager.trigger(eventName, this, ...args)
   }
 
-  zeroOrientation() {
+  public zeroOrientation() {
     this.orientationOffset = this.lastQuant.invert()
     this.trigger("zero_orientation")
     return this
   }
 
-  vibrate(intensity: string= "medium") {
+  public vibrate(intensity: string= "medium") {
     this.myoManager.sendCommand({
       command: "vibrate",
       myo: this.connectIndex,
@@ -61,7 +61,7 @@ export class Myo {
     return this
   }
 
-  requestBluetoothStrength() {
+  public requestBluetoothStrength() {
     this.myoManager.sendCommand({
       command: "request_rssi",
       myo: this.connectIndex
@@ -69,7 +69,7 @@ export class Myo {
     return this
   }
 
-  requestBatteryLevel() {
+  public requestBatteryLevel() {
     this.myoManager.sendCommand({
       command: "request_battery_level",
       myo: this.connectIndex
@@ -77,7 +77,7 @@ export class Myo {
     return this
   }
 
-  streamEMG(enabled: boolean) {
+  public streamEMG(enabled: boolean) {
     this.myoManager.sendCommand({
       command: "set_stream_emg",
       myo: this.connectIndex,
@@ -86,16 +86,16 @@ export class Myo {
     return this
   }
 
-  pose(data: PoseDto) {
-    if (this.lastPose){
+  public pose(data: IPoseDto) {
+    if (this.lastPose) {
       this.trigger(this.lastPose + "_off")
       this.trigger("pose_off", this.lastPose)
     }
-    if (data.pose === "rest"){
+    if (data.pose === "rest") {
       this.trigger("rest")
-      this.lastPose = null
+      this.lastPose = undefined
       if (this.myoManager.lockingPolicy === "standard") this.unlock()
-    } else{
+    } else {
       this.trigger(data.pose)
       this.trigger("pose", data.pose)
       this.lastPose = data.pose
@@ -103,12 +103,12 @@ export class Myo {
     }
   }
 
-  orientation(data: OrientationDto) {
+  public orientation(data: IOrientationDto) {
     this.lastQuant = data.orientation
     const orientation = this.orientationOffset.rotate(data.orientation)
     const accelerometer = Vector3.fromArray(data.accelerometer)
     const gyroscope = Vector3.fromArray(data.gyroscope)
-    const imuData = { orientation, accelerometer, gyroscope } as IMUData
+    const imuData = { orientation, accelerometer, gyroscope } as IIMUData
 
     const { timestamp } = data
     this.trigger("orientation", orientation, timestamp)
@@ -118,47 +118,47 @@ export class Myo {
     this.lastIMU = imuData
   }
 
-  emg (data: EmgDto) {
+  public emg (data: IEmgDto) {
     this.trigger(data.type, data.emg, data.timestamp)
   }
 
   //Status Events
-  arm_synced(data: ArmDto) {
+  public arm_synced(data: IArmDto) {
     this.arm = data.arm
     this.direction = data.x_direction
     this.warmupState = data.warmup_state
     this.isSynced = true
   }
 
-  arm_unsynced() {
+  public arm_unsynced() {
     this.arm = undefined
     this.direction = undefined
     this.warmupState = undefined
     this.isSynced = false
   }
 
-  connected({ version }: VersionDto) {
+  public connected({ version }: IVersionDto) {
     this.connectVersion = version.join(".")
     this.isConnected = true
   }
 
-  disconnected() {
+  public disconnected() {
     this.isConnected = false
   }
 
-  locked() {
+  public locked() {
     this.isLocked = true
   }
 
-  unlocked() {
+  public unlocked() {
     this.isLocked = false
   }
 
-  warmup_completed() {
+  public warmup_completed() {
     this.warmupState = "warm"
   }
 
-  rssi(data: RssiDto) {
+  public rssi(data: IRssiDto) {
     data.bluetooth_strength = getStrengthFromRssi(data.rssi)
     const { timestamp } = data
     this.trigger("bluetooth_strength", data.bluetooth_strength, timestamp)
@@ -166,7 +166,7 @@ export class Myo {
     this.trigger("status", data, timestamp)
   }
 
-  battery_level(data: BatteryDto) {
+  public battery_level(data: IBatteryDto) {
     this.batteryLevel = data.battery_level
     this.trigger("battery_level", data.battery_level, data.timestamp)
     this.trigger("status", data, data.timestamp)

@@ -1,7 +1,7 @@
 import { Myo } from "./Myo"
-import { MyoDto, Command } from "./types";
+import { IMyoDto, ICommand, LockingPolicy } from "./types"
 
-export type Callback = (myo: Myo | undefined, ...args: any[]) => void
+export type Callback = (myo: Myo | undefined, ...args: {}[]) => void
 
 interface IEventHandler {
   id: string
@@ -20,15 +20,15 @@ export class MyoManager {
   private eventHandlersAll = new Array<IEventHandler>()
   private eventCounter: number = 0
 
-  lockingPolicy = "standard"
-  myos: Myo[] = []
+  public lockingPolicy: LockingPolicy = "standard"
+  public myos: Myo[] = []
   private socket: WebSocket
 
-  onError() {
+  private onError() {
     throw "MYO: Error with the socket connection. Myo Connect might not be running. If it is, double check the API version."
   }
 
-  setLockingPolicy(policy: string) {
+  public setLockingPolicy(policy: LockingPolicy) {
     this.sendCommand({
       command: "set_locking_policy",
       type: policy
@@ -37,7 +37,7 @@ export class MyoManager {
     return this
   }
 
-  trigger(eventName: string, myo: Myo | undefined, ...args: any[]) {
+  public trigger(eventName: string, myo: Myo | undefined, ...args: {}[]) {
     const handler = this.eventHandlers.get(eventName)
     if (handler !== undefined) {
       handler.fn(myo, ...args)
@@ -47,8 +47,8 @@ export class MyoManager {
     return this
   }
 
-  on(name: string, fn: Callback) {
-    const id = Date.now() + "" + this.eventCounter++
+  public on(name: string, fn: Callback) {
+    const id = `${ Date.now() }${ this.eventCounter++ }`
     const handler = { id, name, fn }
     if (name === "*") {
       this.eventHandlersAll.push(handler)
@@ -58,7 +58,7 @@ export class MyoManager {
     return id
   }
 
-  off(name: string) {
+  public off(name: string) {
     if (name === "*") {
       this.eventHandlersAll = [] // this is not really optimal
     } else {
@@ -67,13 +67,13 @@ export class MyoManager {
     return this
   }
 
-  connect(newAppID: string) {
+  public connect(newAppID: string) {
     if (newAppID) {
       this.defaults.appID = newAppID
     }
 
     const { socketUrl, apiVersion, appID } = this.defaults
-    const s = new WebSocket(socketUrl + apiVersion + "?appid=" + appID)
+    const s = new WebSocket(`${ socketUrl }${ apiVersion }?appid=${ appID }`)
     s.onmessage = msg => this.handleMessage(msg)
     s.onopen = ev => this.trigger("ready", undefined, ev)
     s.onclose = ev => this.trigger("socket_closed", undefined, ev)
@@ -81,16 +81,16 @@ export class MyoManager {
     this.socket = s
   }
 
-  disconnect() {
+  public disconnect() {
     this.socket.close()
   }
 
-  sendCommand(data: Command) {
+  public sendCommand(data: ICommand) {
     this.socket.send(JSON.stringify([ "command", data ]))
   }
 
-  handleMessage(msg: MessageEvent) {
-    const data = JSON.parse(msg.data)[1] as MyoDto
+  public handleMessage(msg: MessageEvent) {
+    const data = JSON.parse(msg.data)[1] as IMyoDto
 
     if (!data.type || typeof(data.myo) === "undefined") return
     if (data.type === "paired") {

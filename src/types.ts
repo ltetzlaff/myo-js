@@ -1,46 +1,55 @@
-import { Quaternion } from "./util";
+import { Quaternion } from "./util"
 
-export type IDK = any
+// This stands for in which direction the thalmic logo on the device is pointing.
+export type Direction = "toward_elbow" | "toward_wrist" | undefined
 
-export interface BatteryDto {
+export type Arm = "left" | "right"
+
+export type LockingPolicy = "standard" | "none"
+
+export interface IBatteryDto {
   battery_level: number
   timestamp: number
 }
 
-export interface RssiDto {
+export interface IRssiDto {
   rssi: number
   bluetooth_strength: number
   timestamp: number
 }
 
-export interface VersionDto {
+export interface IVersionDto {
   version: string[] | number[]
 }
 
-export interface ArmDto {
-  arm: IDK
-  x_direction: any
+export interface IArmDto {
+  arm: Arm
+  x_direction: Direction
   warmup_state: string
 }
 
-export interface EmgDto {
+export type EmgPodsTuple = [ number, number, number, number, number, number, number, number ]
+
+export interface IEmgDto {
   type: string
   timestamp: number
-  emg: IDK
+  emg: EmgPodsTuple
 }
 
-export interface OrientationDto {
+export interface IOrientationDto {
   timestamp: number
   orientation: Quaternion
   accelerometer: [number, number, number]
   gyroscope: [number, number, number]
 }
 
-export interface PoseDto {
-  pose: "rest" | IDK
+export type Pose = "rest" | "fingers_spread" | "wave_in" | "wave_out" | "fist" | "double_tap"
+
+export interface IPoseDto {
+  pose: Pose
 }
 
-export interface MyoDto extends OrientationDto, PoseDto, EmgDto, ArmDto, VersionDto, RssiDto, BatteryDto {
+export interface IMyoDto extends IOrientationDto, IPoseDto, IEmgDto, IArmDto, IVersionDto, IRssiDto, IBatteryDto {
   type: string
 
   mac_address: string
@@ -48,7 +57,7 @@ export interface MyoDto extends OrientationDto, PoseDto, EmgDto, ArmDto, Version
   myo: string // connectIndex
 }
 
-export interface Command {
+export interface ICommand {
   command: string
   myo?: string
   type?: string

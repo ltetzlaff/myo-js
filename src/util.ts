@@ -1,36 +1,38 @@
+export function clamp(val: number, min: number, max: number) {
+  return Math.min(Math.max(min, val), max)
+}
+
 export function getStrengthFromRssi(rssi: number) {
+  // tslint:disable:no-magic-numbers
   const min = -95
   const max = -40
-  rssi = (rssi < min) ? min : rssi
-  rssi = (rssi > max) ? max : rssi
-  return Math.round(((rssi-min)*100)/(max-min) * 100)/100
+  const percent = 100
+  // tslint:enable:no-magic-numbers
+
+  rssi = clamp(rssi, min, max)
+  return Math.round(((rssi - min) * percent) / (max - min) * percent) / percent
 }
 
 export class Quaternion {
-  x: number
-  y: number
-  z: number
-  w: number
+  constructor(
+    public x: number,
+    public y: number,
+    public z: number,
+    public w: number
+  ) {}
 
-  constructor(x: number, y: number, z: number, w: number) {
-    this.x = x
-    this.y = y
-    this.z = z
-    this.w = w
-  }
-
-  invert() {
+  public invert(): Quaternion {
     const { x, y, z, w } = this
-    var len = Math.sqrt(x * x + y * y + z * z + w * w)
+    const len = Math.sqrt(x * x + y * y + z * z + w * w)
     return {
-      w: w/len,
-      x: -x/len,
-      y: -y/len,
-      z: -z/len
+      w:  w / len,
+      x: -x / len,
+      y: -y / len,
+      z: -z / len
     } as Quaternion
   }
 
-  rotate(r: Quaternion) {
+  public rotate(r: Quaternion): Quaternion {
     const { x, y, z, w} = this
     return {
       w: w * r.w - x * r.x - y * r.y - z * r.z,
@@ -40,25 +42,25 @@ export class Quaternion {
     } as Quaternion
   }
 
-  static Identity() {
+  public static Identity(): Quaternion {
     return new Quaternion(0, 0, 0, 1)
   }
 }
 
 export class Vector3 {
-  x: number
-  y: number
-  z: number
+  constructor(
+    public x: number,
+    public y: number,
+    public z: number
+  ) {}
 
-  constructor(x: number, y: number, z: number) {
-    this.x = x
-    this.y = y
-    this.z = z
-  }
-
-  static fromArray(a: number[]) {
-    return new Vector3(a[0], a[1], a[2])
+  public static fromArray(a: number[]): Vector3 {
+    return new Vector3(a[0], a[1], a[2]) // tslint:disable-line:no-magic-numbers
   }
 }
 
-export type IMUData = { orientation: Quaternion, accelerometer: Vector3, gyroscope: Vector3 }
+export interface IIMUData {
+  orientation: Quaternion
+  accelerometer: Vector3
+  gyroscope: Vector3
+}
