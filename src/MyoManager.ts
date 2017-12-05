@@ -60,22 +60,19 @@ export class MyoManager {
     this.eventHandlersAll.forEach(h => h.fn(undefined, ...args))
   }
 
-  public on(name: MMEvent.Ready, fn: MCBEvent): void
-  public on(name: MMEvent.SocketClosed, fn: MCBCloseEvent): void
-  public on(name: Pose | MMPoseOffEvent, fn: MCBEmpty): void
-  public on(name: MMEvent.PoseEnter | MMEvent.PoseLeave, fn: MCBPose): void
-
-  public on(name: MMEvent.Orientation, fn: MCBOrientation): void
-  public on(name: MMEvent.Accelerometer, fn: MCBAcceleration): void
-  public on(name: MMEvent.Gyroscope, fn: MCBGyroscope): void
-  public on(name: MMEvent.IMU, fn: MCBIMU): void
-
-  public on(name: MMEvent.ZeroOrientation, fn: MCBEmpty): void
-  public on(name: MMEvent.EMG, fn: MCBEMG): void
-  public on(name: MMEvent.BluetoothStrength, fn: MCBBluetoothStrength): void
-  public on(name: MMEvent.RSSI, fn: MCBRSSI): void
-  public on(name: MMEvent.BatteryLevel, fn: MCBBatteryLevel): void
-  public on(name: MMStatusEvent, fn: MCBStatus): void
+  public on(name: "ready", fn: MCBEvent): void
+  public on(name: "socket_closed", fn: MCBCloseEvent): void
+  public on(name: "rest" | "rest_off" | "fingers_spread" | "fingers_spread_off" | "wave_in" | "wave_in_off" | "wave_out" | "wave_out_off" | "fist" | "fist_off" | "double_tap" | "double_tap_off" | "zero_orientation", fn: MCBEmpty): void
+  public on(name: "pose" | "pose_off", fn: MCBPose): void
+  public on(name: "orientation", fn: MCBOrientation): void
+  public on(name: "accelerometer", fn: MCBAcceleration): void
+  public on(name: "gyroscope", fn: MCBGyroscope): void
+  public on(name: "imu", fn: MCBIMU): void
+  public on(name: "emg", fn: MCBEMG): void
+  public on(name: "bluetooth_strength", fn: MCBBluetoothStrength): void
+  public on(name: "rssi", fn: MCBRSSI): void
+  public on(name: "battery_level", fn: MCBBatteryLevel): void
+  public on(name: "status" | "warmup_complete" | "paired" | "disconnected" | "connected" | "locked" | "arm_synced" | "arm_unsynced", fn: MCBStatus): void
   public on(name: string, fn: MyoCallback): void {
     const id = `${ Date.now() }${ this.eventCounter++ }`
     const handler = { id, name, fn }
