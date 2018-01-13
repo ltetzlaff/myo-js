@@ -10,7 +10,7 @@ export function getStrengthFromRssi(rssi: number) {
   // tslint:enable:no-magic-numbers
 
   rssi = clamp(rssi, min, max)
-  return Math.round(((rssi - min) * percent) / (max - min) * percent) / percent
+  return Math.round((rssi - min) * percent / (max - min) * percent) / percent
 }
 
 export class Quaternion {
@@ -25,7 +25,7 @@ export class Quaternion {
     const { x, y, z, w } = this
     const len = Math.sqrt(x * x + y * y + z * z + w * w)
     return {
-      w:  w / len,
+      w: w / len,
       x: -x / len,
       y: -y / len,
       z: -z / len
@@ -33,7 +33,7 @@ export class Quaternion {
   }
 
   public rotate(r: Quaternion): Quaternion {
-    const { x, y, z, w} = this
+    const { x, y, z, w } = this
     return {
       w: w * r.w - x * r.x - y * r.y - z * r.z,
       x: w * r.x + x * r.w + y * r.z - z * r.y,
@@ -48,11 +48,7 @@ export class Quaternion {
 }
 
 export class Vector3 {
-  constructor(
-    public x: number,
-    public y: number,
-    public z: number
-  ) {}
+  constructor(public x: number, public y: number, public z: number) {}
 
   public static fromArray(a: number[]): Vector3 {
     return new Vector3(a[0], a[1], a[2]) // tslint:disable-line:no-magic-numbers

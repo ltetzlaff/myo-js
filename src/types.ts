@@ -10,7 +10,7 @@ export const enum Arm {
 }
 
 export const enum VibrationDuration {
-  Short= "short",
+  Short = "short",
   Medium = "medium",
   Long = "long"
 }
@@ -73,7 +73,16 @@ export interface IArmDto extends IMyoDto {
   warmup_state: string
 }
 
-export type EMGPodsTuple = [ number, number, number, number, number, number, number, number ]
+export type EMGPodsTuple = [
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number
+]
 
 export interface IEmgDto extends IMyoDto {
   type: MyoDataType.EMG
@@ -162,7 +171,7 @@ export function isMMStatusEvent(event: string) {
 }
 
 export type MMStatusEvent =
-    MMEvent.Status
+  | MMEvent.Status
   | MMEvent.WarmupCompleted
   | MMEvent.Paired
   | MMEvent.Disconnected
@@ -172,7 +181,7 @@ export type MMStatusEvent =
   | MMEvent.ArmUnsynced
 
 export type MMPoseOffEvent =
-    MMEvent.PoseDoubleTapOff
+  | MMEvent.PoseDoubleTapOff
   | MMEvent.PoseFingersSpreadOff
   | MMEvent.PoseWaveInOff
   | MMEvent.PoseWaveOutOff
@@ -182,14 +191,42 @@ export type MCBEmpty = (myo: Myo | undefined) => void
 export type MCBPose = (myo: Myo | undefined, pose: Pose) => void
 export type MCBEvent = (myo: Myo | undefined, ev: Event) => void
 export type MCBCloseEvent = (myo: Myo | undefined, ev: CloseEvent) => void
-export type MCBOrientation = (myo: Myo | undefined, orientation: Quaternion, t: number) => void
-export type MCBAcceleration = (myo: Myo | undefined, acceleration: Vector3, t: number) => void
-export type MCBGyroscope = (myo: Myo | undefined, gyroscope: Vector3, t: number) => void
-export type MCBIMU = (myo: Myo | undefined, imuData: IIMUData, t: number) => void
-export type MCBEMG = (myo: Myo | undefined, emg: EMGPodsTuple, t: number) => void
-export type MCBBluetoothStrength = (myo: Myo | undefined, strength: number, t: number) => void
+export type MCBOrientation = (
+  myo: Myo | undefined,
+  orientation: Quaternion,
+  t: number
+) => void
+export type MCBAcceleration = (
+  myo: Myo | undefined,
+  acceleration: Vector3,
+  t: number
+) => void
+export type MCBGyroscope = (
+  myo: Myo | undefined,
+  gyroscope: Vector3,
+  t: number
+) => void
+export type MCBIMU = (
+  myo: Myo | undefined,
+  imuData: IIMUData,
+  t: number
+) => void
+export type MCBEMG = (
+  myo: Myo | undefined,
+  emg: EMGPodsTuple,
+  t: number
+) => void
+export type MCBBluetoothStrength = (
+  myo: Myo | undefined,
+  strength: number,
+  t: number
+) => void
 export type MCBRSSI = (myo: Myo | undefined, rssi: number, t: number) => void
-export type MCBBatteryLevel = (myo: Myo | undefined, level: number, t: number) => void
+export type MCBBatteryLevel = (
+  myo: Myo | undefined,
+  level: number,
+  t: number
+) => void
 export type MCBStatus = (myo: Myo | undefined, data: IMyoDto, t: number) => void
 
 export type MyoCallback = (myo: Myo | undefined, ...args: any[]) => void // tslint:disable-line:no-any
