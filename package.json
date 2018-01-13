@@ -6,8 +6,7 @@
   "typings": "dist/index",
   "dependencies": {},
   "devDependencies": {
-    "tslint": "^5.8.0",
-    "tslint-lt": "^1.5.0",
+    "tslint-lt": "^1.6.1",
     "typescript": "^2.6.1"
   },
   "scripts": {
@@ -15,7 +14,8 @@
     "buildOnce": "tsc",
     "prepublish": "npm run buildOnce",
     "lint": "tslint --format stylish --project .",
-    "test": "npm run buildOnce && npm run lint"
+    "prettier": "prettier --config node_modules/tslint-lt/.prettierrc.yml --write \"src/*.ts\"",
+    "test": "npm run buildOnce && npm run lint && npm run prettier"
   },
   "repository": {
     "type": "git",
