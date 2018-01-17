@@ -14,7 +14,7 @@
     "buildOnce": "tsc",
     "prepublish": "npm run buildOnce",
     "lint": "tslint --format stylish --project .",
-    "prettier": "prettier --config node_modules/tslint-lt/.prettierrc.yml --write \"src/*.ts\"",
+    "prettier": "prettier --config node_modules/tslint-lt/.prettierrc.yml --write \"{,!node_modules/}**/*.{ts,tsx}\"",
     "test": "npm run buildOnce && npm run lint && npm run prettier"
   },
   "repository": {
